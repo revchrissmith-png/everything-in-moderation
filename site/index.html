@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Everything in Moderation — a floor console for C&MA business sessions</title>
+<meta name="description" content="A live on-screen assistant for the chair of a Christian and Missionary Alliance business session: agenda, motions, and a parliamentary advisor grounded in your own governing documents and Robert's Rules." />
+<style>
+  :root{
+    --navy:#00426A; --blue:#0077C8; --blue-soft:#E6F1FB;
+    --ink:#1f2937; --muted:#5b6675; --hint:#8a93a0;
+    --line:#e4e8ee; --bg:#f5f7fa; --card:#ffffff;
+    --green:#1d7a4d; --green-bg:#e6f4ec;
+    --red:#b3261e; --red-bg:#fbeaea;
+    --amber:#9a6700; --amber-bg:#fbf1d9;
+    --gray:#5f6b7a; --gray-bg:#eef1f4;
+    --radius:14px; --radius-sm:9px;
+    --maxw:1080px;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.65;-webkit-font-smoothing:antialiased}
+  a{color:var(--blue);text-decoration:none}
+  a:hover{text-decoration:underline}
+  h1,h2,h3{line-height:1.25;color:var(--navy);font-weight:600;margin:0 0 .5em}
+  h2{font-size:1.6rem;margin-top:0}
+  h3{font-size:1.12rem}
+  p{margin:0 0 1rem}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+
+  /* nav */
+  header.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:saturate(160%) blur(8px);border-bottom:1px solid var(--line)}
+  .nav .wrap{display:flex;align-items:center;gap:18px;height:62px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;color:var(--navy);font-size:1.05rem}
+  .brand .mark{font-size:1.35rem;line-height:1}
+  .nav nav{margin-left:auto;display:flex;gap:22px;align-items:center}
+  .nav nav a{color:var(--muted);font-size:.95rem;font-weight:500}
+  .nav nav a:hover{color:var(--navy);text-decoration:none}
+  .btn{display:inline-flex;align-items:center;gap:8px;background:var(--blue);color:#fff;padding:10px 18px;border-radius:999px;font-weight:600;font-size:.95rem;border:0;cursor:pointer}
+  .btn:hover{background:#0668ab;text-decoration:none}
+  .btn.ghost{background:transparent;color:var(--navy);border:1.5px solid var(--line)}
+  .btn.ghost:hover{border-color:var(--blue);background:#fff}
+
+  /* hero */
+  .hero{background:linear-gradient(180deg,#fff 0%,var(--bg) 100%);border-bottom:1px solid var(--line)}
+  .hero .wrap{padding-top:70px;padding-bottom:64px;text-align:center}
+  .pill{display:inline-flex;align-items:center;gap:8px;background:var(--blue-soft);color:var(--navy);font-weight:600;font-size:.82rem;padding:6px 14px;border-radius:999px;margin-bottom:22px;letter-spacing:.01em}
+  .hero h1{font-size:2.9rem;letter-spacing:-.02em;margin-bottom:.35em;max-width:16ch;margin-left:auto;margin-right:auto}
+  .hero .lede{font-size:1.22rem;color:var(--muted);max-width:60ch;margin:0 auto 2rem}
+  .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+
+  section{padding:64px 0}
+  section.alt{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .section-head{max-width:62ch;margin:0 auto 38px;text-align:center}
+  .section-head p{color:var(--muted);font-size:1.08rem;margin:0}
+  .eyebrow{text-transform:uppercase;letter-spacing:.09em;font-size:.78rem;font-weight:700;color:var(--blue);margin-bottom:.6em}
+
+  /* console mock */
+  .console{max-width:1020px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:0 18px 48px -28px rgba(0,66,106,.35)}
+  .console-bar{display:flex;align-items:center;gap:12px;background:var(--navy);color:#fff;padding:12px 18px}
+  .console-bar .ttl{font-weight:600;font-size:.98rem;display:flex;align-items:center;gap:9px}
+  .console-bar .dot{width:10px;height:10px;border-radius:50%;background:#7fd1a6;box-shadow:0 0 0 3px rgba(127,209,166,.25)}
+  .modes{margin-left:auto;display:flex;background:rgba(255,255,255,.12);border-radius:999px;padding:3px}
+  .modes span{font-size:.8rem;font-weight:600;padding:5px 14px;border-radius:999px;color:rgba(255,255,255,.72)}
+  .modes span.on{background:#fff;color:var(--navy)}
+  .console-grid{display:grid;grid-template-columns:240px 1fr 286px;min-height:430px}
+  .pane{padding:16px 16px 20px;border-right:1px solid var(--line)}
+  .pane:last-child{border-right:0}
+  .pane h4{margin:0 0 12px;font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--hint);font-weight:700}
+
+  .agenda-item{display:flex;gap:9px;align-items:flex-start;padding:9px 10px;border-radius:var(--radius-sm);font-size:.9rem;color:var(--muted);margin-bottom:2px}
+  .agenda-item .ad{flex:0 0 auto;width:9px;height:9px;border-radius:50%;margin-top:6px;background:var(--line)}
+  .agenda-item.done .ad{background:var(--green)}
+  .agenda-item.active{background:var(--blue-soft);color:var(--navy);font-weight:600}
+  .agenda-item.active .ad{background:var(--blue);box-shadow:0 0 0 3px rgba(0,119,200,.18)}
+  .agenda-item.pending{opacity:.72}
+
+  .motions{background:var(--bg)}
+  .motion{background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm);padding:13px 14px;margin-bottom:12px}
+  .motion-top{display:flex;align-items:center;gap:9px;margin-bottom:8px;flex-wrap:wrap}
+  .code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:700;color:var(--navy);background:var(--blue-soft);padding:2px 8px;border-radius:6px;font-size:.82rem}
+  .badge{font-size:.72rem;font-weight:700;padding:3px 9px;border-radius:999px;letter-spacing:.02em}
+  .b-adopted{background:var(--green-bg);color:var(--green)}
+  .b-tabled{background:var(--amber-bg);color:var(--amber)}
+  .b-withdrawn{background:var(--gray-bg);color:var(--gray)}
+  .vote{margin-left:auto;font-size:.78rem;color:var(--muted);font-weight:600}
+  .motion p{margin:0;font-size:.9rem;color:var(--ink);line-height:1.55}
+  .motion .meta{margin-top:9px;font-size:.78rem;color:var(--hint);display:flex;gap:14px;flex-wrap:wrap}
+  .motion .meta b{color:var(--muted);font-weight:600}
+  ins{background:rgba(29,122,77,.14);text-decoration:underline;text-decoration-color:var(--green);color:#135e3a}
+  del{color:var(--red);text-decoration:line-through;text-decoration-color:rgba(179,38,30,.7)}
+
+  /* parliamentarian */
+  .parl{background:#fbfcfe}
+  .qa{font-size:.86rem}
+  .q{display:flex;gap:8px;margin-bottom:12px;color:var(--navy);font-weight:600}
+  .q .who{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700}
+  .a{background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 12px;color:var(--ink);line-height:1.55}
+  .a .lead{font-weight:600;color:var(--navy);margin-bottom:6px;display:block}
+  .cites{margin-top:10px;display:flex;flex-direction:column;gap:5px}
+  .cite{font-size:.74rem;color:var(--muted);display:flex;gap:7px;align-items:center}
+  .cite .tag{font-size:.64rem;font-weight:700;color:var(--blue);background:var(--blue-soft);padding:2px 6px;border-radius:5px;letter-spacing:.03em}
+  .ask{margin-top:14px;display:flex;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 8px 7px 14px;color:var(--hint);font-size:.84rem}
+  .ask .send{margin-left:auto;background:var(--blue);color:#fff;border-radius:999px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex:0 0 auto}
+  .console-foot{background:#fff;border-top:1px solid var(--line);padding:11px 18px;font-size:.8rem;color:var(--hint);text-align:center}
+
+  /* feature columns */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:26px;max-width:920px;margin:0 auto}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px 26px 10px}
+  .panel ul{margin:0 0 16px;padding-left:0;list-style:none}
+  .panel li{position:relative;padding-left:28px;margin-bottom:13px;color:var(--ink)}
+  .panel li::before{content:"";position:absolute;left:0;top:8px;width:8px;height:8px;border-radius:50%}
+  .panel.yes li::before{background:var(--green)}
+  .panel.no li::before{background:var(--gray);border-radius:2px}
+  .panel li b{color:var(--navy)}
+
+  /* authority hierarchy */
+  .auth{max-width:760px;margin:0 auto}
+  .tier{display:flex;gap:16px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;margin-bottom:12px;position:relative}
+  .tier .rank{flex:0 0 auto;width:34px;height:34px;border-radius:8px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem}
+  .tier h3{margin:0 0 3px;font-size:1.02rem}
+  .tier p{margin:0;color:var(--muted);font-size:.92rem}
+  .tier.ronr .rank{background:var(--blue)}
+  .callout{background:#fff7e8;border:1px solid #f0d79a;border-left:5px solid var(--amber);border-radius:0 var(--radius) var(--radius) 0;padding:20px 24px;margin:26px auto 0;max-width:760px}
+  .callout h3{color:var(--amber);display:flex;align-items:center;gap:9px;margin-bottom:.4em}
+  .callout p{margin:0;color:#6b5a2b}
+  .callout p b{color:#7a5d00}
+
+  /* setup tools */
+  .tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;max-width:920px;margin:0 auto}
+  .tool{display:block;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 20px;color:inherit}
+  .tool:hover{border-color:var(--blue);text-decoration:none;transform:translateY(-2px);transition:.15s}
+  .tool .nm{font-weight:600;color:var(--navy);font-size:1.05rem;display:flex;align-items:center;gap:8px}
+  .tool .nm .ext{margin-left:auto;color:var(--hint);font-size:.85rem}
+  .tool p{margin:.5em 0 0;color:var(--muted);font-size:.9rem}
+  .tool .role{font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--blue);margin-bottom:.5em}
+  .cost-note{max-width:760px;margin:26px auto 0;text-align:center;color:var(--muted);font-size:.96rem;background:var(--blue-soft);border-radius:var(--radius);padding:18px 24px}
+  .cost-note b{color:var(--navy)}
+
+  /* tips */
+  .tips{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;max-width:960px;margin:0 auto}
+  .tip{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+  .tip .n{font-weight:700;color:var(--blue);font-size:.9rem;margin-bottom:.5em}
+  .tip h3{font-size:1rem;margin-bottom:.35em}
+  .tip p{margin:0;color:var(--muted);font-size:.92rem}
+
+  /* footer */
+  footer{background:var(--navy);color:#cfe0ec;padding:54px 0 40px;margin-top:0}
+  footer .wrap{display:grid;grid-template-columns:1.4fr 1fr;gap:30px;align-items:start}
+  footer h3{color:#fff;font-size:1.15rem}
+  footer p{color:#aac4d6;font-size:.95rem;margin:0 0 .6rem}
+  footer a{color:#fff;font-weight:500}
+  .prov{font-size:.88rem;color:#8eaec4;border-top:1px solid rgba(255,255,255,.15);margin-top:34px;padding-top:20px;text-align:center}
+  .flinks{display:flex;flex-direction:column;gap:9px}
+
+  @media(max-width:860px){
+    .console-grid{grid-template-columns:1fr}
+    .pane{border-right:0;border-bottom:1px solid var(--line)}
+    .cols{grid-template-columns:1fr}
+    footer .wrap{grid-template-columns:1fr}
+    .hero h1{font-size:2.2rem}
+    .nav nav a:not(.btn){display:none}
+  }
+</style>
+</head>
+<body>
+<h1 class="sr-only">Everything in Moderation — a parliamentary floor console for Christian and Missionary Alliance business sessions. This is a demonstration site, not a live copy.</h1>
+
+<header class="nav">
+  <div class="wrap">
+    <div class="brand"><span class="mark" aria-hidden="true">⚖️</span> Everything in Moderation</div>
+    <nav>
+      <a href="#console">The console</a>
+      <a href="#how">How it works</a>
+      <a href="#setup">Set it up</a>
+      <a class="btn ghost" href="https://github.com/revchrissmith-png/everything-in-moderation">View on GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <span class="pill" aria-hidden="true">⚖️ Demonstration site — not a live copy</span>
+    <h1>A floor console for the chair of a business session</h1>
+    <p class="lede">Agenda, motions, and a parliamentary advisor — grounded in your own governing documents and Robert&rsquo;s Rules. Built for the Christian &amp; Missionary Alliance in Canada: the national General Assembly and its district conferences.</p>
+    <div class="cta-row">
+      <a class="btn" href="#console">See the console &darr;</a>
+      <a class="btn ghost" href="https://github.com/revchrissmith-png/everything-in-moderation">View the code &amp; README</a>
+    </div>
+  </div>
+</div>
+
+<section id="console">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">The console</div>
+      <h2>Everything the chair needs, on one screen</h2>
+      <p>Below is the live console as it looked chairing a real assembly. Sample business is shown for demonstration — the working tool runs on your district&rsquo;s own agenda and documents.</p>
+    </div>
+
+    <div class="console" role="img" aria-label="Mock-up of the moderator console showing an agenda list, floor motions with disposition badges, and a parliamentary advisor panel.">
+      <div class="console-bar">
+        <div class="ttl"><span class="dot" aria-hidden="true"></span> General Assembly 2026 &mdash; business session</div>
+        <div class="modes" aria-hidden="true"><span>Planning</span><span class="on">Live</span></div>
+      </div>
+      <div class="console-grid">
+
+        <div class="pane agenda">
+          <h4>Agenda</h4>
+          <div class="agenda-item done"><span class="ad"></span> Adopting the agenda</div>
+          <div class="agenda-item done"><span class="ad"></span> Declaration of quorum</div>
+          <div class="agenda-item done"><span class="ad"></span> Committee on Finance</div>
+          <div class="agenda-item active"><span class="ad"></span> Governance &amp; Legislation</div>
+          <div class="agenda-item pending"><span class="ad"></span> Committee on Nominations</div>
+          <div class="agenda-item pending"><span class="ad"></span> Strategic priorities</div>
+          <div class="agenda-item pending"><span class="ad"></span> Closing business</div>
+        </div>
+
+        <div class="pane motions">
+          <h4>Floor motions &mdash; Governance &amp; Legislation</h4>
+
+          <div class="motion">
+            <div class="motion-top">
+              <span class="code">F1</span>
+              <span class="badge b-adopted">Adopted</span>
+              <span class="vote">Majority &middot; 412&ndash;6</span>
+            </div>
+            <p>That Doane Grant Thornton LLP be appointed as independent auditors for 2026, at a fee approved by the Board.</p>
+            <div class="meta"><span><b>Class:</b> main motion</span><span><b>Seconded</b></span></div>
+          </div>
+
+          <div class="motion">
+            <div class="motion-top">
+              <span class="code">GL2</span>
+              <span class="badge b-adopted">Adopted</span>
+              <span class="vote">Two-thirds &middot; 388&ndash;71</span>
+            </div>
+            <p>That the Local Church Constitution be amended as set out in the Board&rsquo;s recommendation.</p>
+            <div class="meta"><span><b>Threshold:</b> 2/3 &mdash; bylaw amendment</span><span><b>Synod-suggested, confirmed</b></span></div>
+          </div>
+
+          <div class="motion">
+            <div class="motion-top">
+              <span class="code">GL7a</span>
+              <span class="badge b-adopted">Adopted</span>
+              <span class="vote">Majority</span>
+            </div>
+            <p>That Standing Rule 4 be amended to read: a quorum shall consist of <del>forty</del> <ins>thirty-five</ins> per cent of registered delegates <ins>present in person or by approved electronic means</ins>.</p>
+            <div class="meta"><span><b>Amendment to</b> GL7</span><span style="color:var(--blue)">illustrative &mdash; shows amendment mark-up</span></div>
+          </div>
+
+          <div class="motion">
+            <div class="motion-top">
+              <span class="code">SP4</span>
+              <span class="badge b-tabled">Tabled</span>
+              <span class="vote">Majority</span>
+            </div>
+            <p>That the Board allocate a portion of projected savings toward a generosity initiative, reporting back to GA 2028.</p>
+            <div class="meta"><span><b>Laid on the table</b></span></div>
+          </div>
+        </div>
+
+        <div class="pane parl">
+          <h4>Parliamentarian</h4>
+          <div class="qa">
+            <div class="q"><span class="who" aria-hidden="true">M</span> What vote does GL2 need to pass?</div>
+            <div class="a">
+              <span class="lead">A two-thirds vote.</span>
+              GL2 amends the Local Church Constitution, an entrenched governing document. Amendments to it require a two-thirds vote of those present and voting; a simple majority is not sufficient. The chair may state the threshold before the vote is taken.
+              <div class="cites">
+                <div class="cite"><span class="tag">POLICY</span> General Operating Bylaw, Art. 14.2</div>
+                <div class="cite"><span class="tag">RONR</span> §57:1 &mdash; amend something previously adopted</div>
+              </div>
+            </div>
+            <div class="ask" aria-hidden="true">Ask the Parliamentarian&hellip; <span class="send">&rarr;</span></div>
+          </div>
+        </div>
+
+      </div>
+      <div class="console-foot">Sample data shown for demonstration. The live tool runs on your district&rsquo;s own documents and never leaves your deployment.</div>
+    </div>
+  </div>
+</section>
+
+<section id="how" class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">How it works</div>
+      <h2>It advises &mdash; the chair decides</h2>
+      <p>The tool keeps the moderator on neutral ground. It answers only from the documents you load, and phrases every ruling as the chair&rsquo;s to make.</p>
+    </div>
+    <div class="cols">
+      <div class="panel yes">
+        <h3>What it does</h3>
+        <ul>
+          <li>Holds the <b>agenda</b> and steps through it live, with one-tap back</li>
+          <li>Tracks <b>motions</b> on the floor &mdash; wording, seconds, vote required, disposition, and counts</li>
+          <li>Shows <b>amendments</b> as struck-through and underlined text, and codes resolutions automatically</li>
+          <li>Answers parliamentary questions from <b>your governing documents</b> and Robert&rsquo;s Rules, with citations</li>
+          <li>Gives scoped access to a small <b>support team</b> on the floor</li>
+        </ul>
+      </div>
+      <div class="panel no">
+        <h3>What it is not</h3>
+        <ul>
+          <li>It does <b>not rule</b> &mdash; it phrases everything as &ldquo;the chair may rule&hellip;&rdquo;</li>
+          <li>It does <b>not guess</b> &mdash; it answers only from loaded documents and says so when something isn&rsquo;t settled</li>
+          <li>It is <b>not generic</b> &mdash; it&rsquo;s grounded in the law that governs <i>your</i> assembly</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="authority">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Grounded in your law</div>
+      <h2>The authority your assembly actually answers to</h2>
+      <p>For a district conference, the order of authority runs from your incorporating statute down to Robert&rsquo;s Rules. The advisor cites in this order.</p>
+    </div>
+    <div class="auth">
+      <div class="tier"><span class="rank">1</span><div><h3>Your incorporating statute</h3><p>Federal, or the province/territory your district is incorporated under &mdash; the highest legal authority.</p></div></div>
+      <div class="tier"><span class="rank">2</span><div><h3>C&amp;MA national governing documents</h3><p>Your district is a subordinate body; its bylaws cannot override national polity.</p></div></div>
+      <div class="tier"><span class="rank">3</span><div><h3>Your district constitution &amp; bylaws</h3><p>Your own standing rules &mdash; they supersede Robert&rsquo;s Rules, and yield to the two layers above.</p></div></div>
+      <div class="tier ronr"><span class="rank">R</span><div><h3>Robert&rsquo;s Rules of Order (12th ed.)</h3><p>The parliamentary fallback for anything the documents above don&rsquo;t settle. Loaded for every district.</p></div></div>
+    </div>
+    <div class="callout">
+      <h3><span aria-hidden="true">&#9888;</span> One thing only the moderator can confirm</h3>
+      <p>The statute that governs your conference is the one your district is <b>incorporated under</b> &mdash; not simply a province you happen to operate in. Several of our districts span more than one province or territory. The tool must be pointed at your <b>incorporating jurisdiction</b> so it never cites law that doesn&rsquo;t bind your assembly.</p>
+    </div>
+  </div>
+</section>
+
+<section id="setup" class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Set it up</div>
+      <h2>Run your own copy</h2>
+      <p>The code is open and free. Each district stands up its own deployment on its own accounts &mdash; a weekend&rsquo;s work for someone comfortable with web apps. Start with the repository and its README.</p>
+    </div>
+    <div class="tools">
+      <a class="tool" href="https://github.com/revchrissmith-png/everything-in-moderation">
+        <div class="role">Start here</div>
+        <div class="nm">GitHub repository <span class="ext" aria-hidden="true">&#8599;</span></div>
+        <p>The source code, the README, and the step-by-step setup &amp; customization guide.</p>
+      </a>
+      <a class="tool" href="https://supabase.com">
+        <div class="role">Database &amp; login</div>
+        <div class="nm">Supabase <span class="ext" aria-hidden="true">&#8599;</span></div>
+        <p>Holds your agenda, motions, documents, and sign-in. Generous free tier.</p>
+      </a>
+      <a class="tool" href="https://vercel.com">
+        <div class="role">Hosting</div>
+        <div class="nm">Vercel <span class="ext" aria-hidden="true">&#8599;</span></div>
+        <p>Deploys the web app from the repository in a few clicks.</p>
+      </a>
+      <a class="tool" href="https://www.anthropic.com">
+        <div class="role">Parliamentary advisor</div>
+        <div class="nm">Anthropic <span class="ext" aria-hidden="true">&#8599;</span></div>
+        <p>Powers the advisor and the vote-threshold suggestions.</p>
+      </a>
+      <a class="tool" href="https://platform.openai.com">
+        <div class="role">Document search</div>
+        <div class="nm">OpenAI <span class="ext" aria-hidden="true">&#8599;</span></div>
+        <p>Embeddings that let the advisor find the right passage in your documents.</p>
+      </a>
+      <a class="tool" href="https://resend.com">
+        <div class="role">Email</div>
+        <div class="nm">Resend <span class="ext" aria-hidden="true">&#8599;</span></div>
+        <p>Sends sign-in codes and team invitations under your own identity.</p>
+      </a>
+    </div>
+    <div class="cost-note">
+      <b>Ongoing cost is the deploying district&rsquo;s own</b> &mdash; modest, mostly free or low-tier services adequate for an occasional conference. Each district runs and funds its own copy.
+    </div>
+  </div>
+</section>
+
+<section id="tips">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Helpful tips</div>
+      <h2>Before you go live</h2>
+    </div>
+    <div class="tips">
+      <div class="tip"><div class="n">01</div><h3>Confirm your jurisdiction first</h3><p>Settle which statute incorporates your district before anything else &mdash; everything downstream depends on it.</p></div>
+      <div class="tip"><div class="n">02</div><h3>Gather documents early</h3><p>Have your constitution, bylaws, standing rules, and the relevant statute ready as files to upload.</p></div>
+      <div class="tip"><div class="n">03</div><h3>Load the agenda ahead of time</h3><p>Build and reorder the agenda in planning mode days before, then switch to live on the day.</p></div>
+      <div class="tip"><div class="n">04</div><h3>Do a dry run</h3><p>Enter a few sample motions, ask the advisor a question, confirm it cites your documents, then reset.</p></div>
+      <div class="tip"><div class="n">05</div><h3>Add a second set of hands</h3><p>Invite a trusted clerk to the support team so motion entry doesn&rsquo;t fall solely to the chair.</p></div>
+      <div class="tip"><div class="n">06</div><h3>The chair still rules</h3><p>Treat the advisor as counsel at your elbow &mdash; fast, cited, neutral &mdash; not as the decision.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <h3>Everything in Moderation</h3>
+      <p>An open-source parliamentary floor console built for the Christian &amp; Missionary Alliance in Canada &mdash; the national General Assembly and its district conferences. Built and maintained by Chris Smith.</p>
+      <p>This is a demonstration and information site. It is not a live copy of the tool.</p>
+    </div>
+    <div>
+      <h3>Links</h3>
+      <div class="flinks">
+        <a href="https://github.com/revchrissmith-png/everything-in-moderation">GitHub repository</a>
+        <a href="https://github.com/revchrissmith-png/everything-in-moderation#readme">Setup &amp; customization guide (README)</a>
+        <a href="#console">The console demonstration</a>
+        <a href="#setup">Tools you&rsquo;ll need</a>
+      </div>
+    </div>
+  </div>
+  <div class="wrap"><p class="prov">First deployed live at General Assembly 2026 &mdash; 15 agenda items and 37 floor motions over the business sessions.</p></div>
+</footer>
+</body>
+</html>
