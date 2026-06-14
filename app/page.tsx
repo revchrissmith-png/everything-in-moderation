@@ -19,7 +19,7 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="border-b border-gray-200 bg-white">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div>
             <h1 className="text-base font-bold text-[#00426A]">⚖️ Moderator console</h1>
             <p className="text-xs text-gray-400">{user.name ?? user.email}</p>
@@ -27,7 +27,7 @@ export default async function Home() {
           <SignOutButton />
         </div>
       </header>
-      <main className="max-w-3xl mx-auto px-4 py-4">
+      <main className="max-w-6xl mx-auto px-4 py-4">
         <ModeratorTab />
       </main>
     </div>

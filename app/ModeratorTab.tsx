@@ -28,7 +28,7 @@ type Mode = 'prep' | 'live'
 function ResolutionText({ html, className = '' }: { html: string; className?: string }) {
   return (
     <span
-      className={`[&_s]:text-red-700 [&_s]:bg-red-50 [&_s]:rounded-sm [&_s]:px-0.5 [&_s]:decoration-red-600 [&_u]:text-emerald-800 [&_u]:bg-emerald-50 [&_u]:rounded-sm [&_u]:px-0.5 [&_u]:decoration-emerald-600 [&_u]:decoration-2 ${className}`}
+      className={`[&_s]:text-[#b3261e] [&_s]:decoration-[#b3261e] [&_u]:text-[#135e3a] [&_u]:bg-[#e3f1ea] [&_u]:rounded-sm [&_u]:px-0.5 [&_u]:decoration-[#1d7a4d] [&_u]:decoration-2 ${className}`}
       dangerouslySetInnerHTML={{ __html: sanitizeRich(html) }}
     />
   )
@@ -152,36 +152,39 @@ export default function ModeratorTab() {
 
   return (
     <ModeratorCtx.Provider value={{ mode, editing, holdPoll, releasePoll }}>
-      <div className="max-w-3xl mx-auto px-3 pb-24">
-        {/* Mode + Edit/Observe toggle */}
-        <div className="sticky top-0 z-20 -mx-3 px-3 py-2 bg-white/95 backdrop-blur border-b border-gray-200">
-          <div className="flex items-center justify-between gap-3">
-            <div className="inline-flex rounded-lg bg-gray-100 p-0.5">
-              {(['live', 'prep'] as Mode[]).map(m => (
-                <button key={m} onClick={() => setMode(m)}
-                  className={`px-4 py-1.5 text-sm font-semibold rounded-md transition ${mode === m ? 'bg-[#00426A] text-white shadow' : 'text-gray-600'}`}>
-                  {m === 'live' ? '🔴 Live' : '📋 Prep'}
-                </button>
-              ))}
+      <div className="max-w-6xl mx-auto px-3 pb-24 pt-3">
+        <div className="rounded-2xl border border-[#e4e8ee] bg-white overflow-hidden shadow-[0_18px_48px_-28px_rgba(0,66,106,0.35)]">
+          <div className="bg-[#00426A] text-white px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2.5">
+              <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_0_3px_rgba(110,231,183,0.25)]" />
+              <span className="font-semibold text-sm">Moderator console</span>
             </div>
-            <button onClick={toggleEditing}
-              aria-pressed={editing}
-              className={`px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition ring-1 ${
-                editing ? 'bg-emerald-600 text-white ring-emerald-700' : 'bg-gray-200 text-gray-700 ring-gray-300'}`}>
-              {editing ? '✏️ Editing' : '👁 Observing'}
-            </button>
+            <div className="flex items-center gap-2">
+              <div className="inline-flex rounded-full bg-white/10 p-0.5">
+                {(['live', 'prep'] as Mode[]).map(m => (
+                  <button key={m} onClick={() => setMode(m)}
+                    className={`px-3.5 py-1 text-xs font-semibold rounded-full transition ${mode === m ? 'bg-white text-[#00426A]' : 'text-white/75 hover:text-white'}`}>
+                    {m === 'live' ? 'Live' : 'Planning'}
+                  </button>
+                ))}
+              </div>
+              <button onClick={toggleEditing} aria-pressed={editing}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${editing ? 'bg-emerald-500 text-white' : 'bg-white/15 text-white hover:bg-white/25'}`}>
+                {editing ? '✏️ Editing' : '👁 Observing'}
+              </button>
+            </div>
           </div>
-          {!editing && (
-            <p className="mt-1 text-[11px] text-slate-600">
-              Read-only — browse freely. Tap <b>👁 Observing</b> to switch to <b>✏️ Editing</b> when you need to make changes.
-            </p>
-          )}
-        </div>
 
-        {mode === 'live'
-          ? <LiveMode agenda={agenda} current={current} floor={floor} catalog={catalog} refresh={refresh} />
-          : <PrepMode agenda={agenda} floor={floor} catalog={catalog} team={team} isOwner={isOwner}
-              setAgenda={setAgenda} setFloor={setFloor} refresh={refresh} refreshTeam={refreshTeam} />}
+          {mode === 'live'
+            ? <LiveMode agenda={agenda} current={current} floor={floor} catalog={catalog} refresh={refresh} />
+            : <div className="bg-[#f7f8fa] p-3"><PrepMode agenda={agenda} floor={floor} catalog={catalog} team={team} isOwner={isOwner}
+                setAgenda={setAgenda} setFloor={setFloor} refresh={refresh} refreshTeam={refreshTeam} /></div>}
+        </div>
+        {!editing && (
+          <p className="mt-2 px-1 text-[11px] text-slate-500">
+            Read-only — browse freely. Tap <b>👁 Observing</b> to switch to <b>✏️ Editing</b> when you need to make changes.
+          </p>
+        )}
       </div>
     </ModeratorCtx.Provider>
   )
@@ -194,11 +197,63 @@ function LiveMode({ agenda, current, floor, catalog, refresh }: {
   refresh: () => Promise<void>
 }) {
   return (
-    <div className="space-y-4 pt-3">
-      <QueryBar />
-      <CurrentItem current={current} agenda={agenda} refresh={refresh} />
-      <MotionConsole floor={floor} catalog={catalog} current={current} refresh={refresh} />
-      <RulesLookup catalog={catalog} />
+    <div className="grid lg:grid-cols-[230px_minmax(0,1fr)_300px] divide-y divide-[#e4e8ee] lg:divide-y-0 lg:divide-x">
+      <AgendaPane agenda={agenda} current={current} refresh={refresh} />
+      <div className="min-w-0 bg-[#f5f7fa] p-4">
+        <CurrentHeader current={current} />
+        <MotionConsole floor={floor} catalog={catalog} current={current} refresh={refresh} />
+      </div>
+      <div className="bg-[#fbfcfe] p-4 space-y-4">
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#8a93a0]">Parliamentarian</h4>
+        <QueryBar />
+        <RulesLookup catalog={catalog} />
+      </div>
+    </div>
+  )
+}
+
+function AgendaPane({ agenda, current, refresh }: { agenda: AgendaItem[]; current: AgendaItem | null; refresh: () => Promise<void> }) {
+  const { mode, editing } = useMod()
+  const [busy, setBusy] = useState(false)
+  const advance = async () => { setBusy(true); try { await jsend('/api/moderator/agenda', 'POST', { action: 'advance' }); await refresh() } finally { setBusy(false) } }
+  const back = async () => { setBusy(true); try { await jsend('/api/moderator/agenda', 'POST', { action: 'back' }); await refresh() } finally { setBusy(false) } }
+  const canGoBack = agenda.some(i => i.status === 'disposed')
+  return (
+    <div className="bg-white p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#8a93a0]">Agenda</h4>
+        {mode === 'live' && editing && (
+          <div className="flex gap-1">
+            <button onClick={back} disabled={busy || !canGoBack} aria-label="Step back" className="px-2 py-1 rounded-md border border-[#e4e8ee] text-[#00426A] text-xs font-semibold disabled:opacity-40">◂</button>
+            <button onClick={advance} disabled={busy} aria-label="Advance" className="px-2 py-1 rounded-md bg-[#00426A] text-white text-xs font-semibold disabled:opacity-50">▸</button>
+          </div>
+        )}
+      </div>
+      <div className="space-y-0.5">
+        {agenda.map(i => {
+          const done = i.status === 'disposed'
+          const active = i.id === current?.id
+          return (
+            <div key={i.id} className={`flex items-start gap-2 px-2.5 py-2 rounded-lg text-sm ${active ? 'bg-[#E6F1FB] text-[#00426A] font-semibold' : 'text-[#5b6675]'}`}>
+              <span aria-hidden className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${active ? 'bg-[#0077C8] ring-2 ring-[#0077C8]/25' : done ? 'bg-[#1d7a4d]' : 'bg-[#cfd6df]'}`} />
+              <span className={done ? 'line-through text-[#a6adb8]' : ''}>{i.title}</span>
+            </div>
+          )
+        })}
+        {agenda.length === 0 && <p className="text-xs text-[#8a93a0]">No agenda items yet — add them in Planning.</p>}
+      </div>
+    </div>
+  )
+}
+
+function CurrentHeader({ current }: { current: AgendaItem | null }) {
+  if (!current) return <p className="mb-3 text-sm text-[#5b6675]">No active item. Advance the agenda to begin.</p>
+  return (
+    <div className="mb-3">
+      <span className="text-[11px] font-bold uppercase tracking-wider text-[#8a93a0]">Now before the assembly</span>
+      <h3 className="text-lg font-bold text-[#1f2937] leading-tight">{current.title}</h3>
+      {current.item_type === 'report' && <span className="text-[11px] text-[#9a6700] font-semibold">report — working its resolutions</span>}
+      {current.description && <p className="mt-1 text-sm text-[#5b6675] whitespace-pre-wrap leading-relaxed">{current.description}</p>}
     </div>
   )
 }
@@ -239,52 +294,6 @@ function QueryBar() {
               ))}
             </div>
           )}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function CurrentItem({ current, agenda, refresh }: { current: AgendaItem | null; agenda: AgendaItem[]; refresh: () => Promise<void> }) {
-  const { mode } = useMod()
-  const [busy, setBusy] = useState(false)
-  const advance = async () => { setBusy(true); try { await jsend('/api/moderator/agenda', 'POST', { action: 'advance' }); await refresh() } finally { setBusy(false) } }
-  const back = async () => { setBusy(true); try { await jsend('/api/moderator/agenda', 'POST', { action: 'back' }); await refresh() } finally { setBusy(false) } }
-  const upNext = agenda.find(i => i.status === 'pending')
-  const canGoBack = agenda.some(i => i.status === 'disposed')
-  return (
-    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-      <div className="flex items-center justify-between">
-        <span className="text-[11px] font-bold uppercase tracking-wide text-amber-700">Now before the assembly</span>
-        {mode === 'live' && (
-          <div className="flex items-center gap-2">
-            <button onClick={back} disabled={busy || !canGoBack}
-              className="px-3 py-1.5 rounded-lg border border-[#00426A] text-[#00426A] text-sm font-semibold disabled:opacity-40">
-              {busy ? '…' : '◂ Back'}
-            </button>
-            <button onClick={advance} disabled={busy}
-              className="px-3 py-1.5 rounded-lg bg-[#00426A] text-white text-sm font-semibold disabled:opacity-50">
-              {busy ? '…' : 'Advance ▸'}
-            </button>
-          </div>
-        )}
-      </div>
-      {current ? (
-        <>
-          <h3 className="mt-1 text-xl font-bold text-gray-900 leading-tight">{current.title}</h3>
-          {current.item_type === 'report' && <span className="text-[11px] text-amber-700 font-semibold">report — working its resolutions</span>}
-          {current.description && <p className="mt-1 text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">{current.description}</p>}
-        </>
-      ) : (
-        <p className="mt-1 text-slate-700">No active item. {upNext ? `Advance to start: “${upNext.title}”.` : 'Add agenda items in Prep.'}</p>
-      )}
-      {agenda.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {agenda.map(i => (
-            <span key={i.id} className={`text-[11px] px-2 py-0.5 rounded-full ${STATUS_STYLE[i.status] ?? 'bg-gray-100'}`}>
-              {i.title.length > 28 ? i.title.slice(0, 28) + '…' : i.title}
-            </span>
-          ))}
         </div>
       )}
     </div>
@@ -342,8 +351,8 @@ function MotionConsole({ floor, catalog, current, refresh }: {
     !m.amends && ['pending', 'seconded'].includes(m.status) && (!inReport || m.agenda_item_id !== current!.id))
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <h3 className="text-sm font-bold text-slate-800 mb-2">
+    <div>
+      <h3 className="text-sm font-bold text-[#00426A] mb-2">
         {inReport ? `Resolutions — ${current!.title}` : 'Motion console'}
       </h3>
 
@@ -594,7 +603,7 @@ function RichEditor({ initialHTML, saving, onSave, onCancel }: {
       <div ref={ref} contentEditable suppressContentEditableWarning role="textbox" aria-multiline="true"
         onFocus={holdPoll} onBlur={releasePoll}
         dangerouslySetInnerHTML={{ __html: sanitizeRich(initialHTML) }}
-        className="min-h-[3.5rem] w-full px-2 py-1.5 bg-white text-slate-900 border border-slate-300 rounded-md outline-none focus:border-[#00426A] whitespace-pre-wrap [&_s]:text-red-700 [&_s]:bg-red-50 [&_s]:rounded-sm [&_s]:px-0.5 [&_s]:decoration-red-600 [&_u]:text-emerald-800 [&_u]:bg-emerald-50 [&_u]:rounded-sm [&_u]:px-0.5 [&_u]:decoration-emerald-600 [&_u]:decoration-2" />
+        className="min-h-[3.5rem] w-full px-2 py-1.5 bg-white text-slate-900 border border-slate-300 rounded-md outline-none focus:border-[#00426A] whitespace-pre-wrap [&_s]:text-[#b3261e] [&_s]:decoration-[#b3261e] [&_u]:text-[#135e3a] [&_u]:bg-[#e3f1ea] [&_u]:rounded-sm [&_u]:px-0.5 [&_u]:decoration-[#1d7a4d] [&_u]:decoration-2" />
       <div className="mt-1 flex gap-2">
         <button onClick={() => onSave(ref.current?.innerHTML ?? '')} disabled={saving} className="px-3 py-1 text-xs rounded-md bg-[#00426A] text-white font-semibold disabled:opacity-50">Save</button>
         <button onClick={onCancel} className="px-3 py-1 text-xs rounded-md bg-slate-200 text-slate-800 hover:bg-slate-300 font-semibold">Cancel</button>
