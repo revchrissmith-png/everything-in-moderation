@@ -12,11 +12,16 @@ In one place it holds the agenda, the motions on the floor, and a parliamentary 
 
 This project is being extracted into a standalone, self-hostable application from the private system where it was first built. What exists today:
 
+- ✅ **The application source** — the Next.js app (console UI, API routes, Parliamentarian + threshold engine, agenda/motion logic) lives in [`/app`](./app) and [`/lib`](./lib); the database schema is in [`/supabase`](./supabase). It builds (`npm install && npm run build`).
 - ✅ **The demonstration site** ([moderation.smittyos.ca](https://moderation.smittyos.ca)) — a faithful, static walkthrough of the console with setup tips. Its source is in [`/site`](./site).
-- ✅ **The design** — architecture, schema, and the district-conference setup guide, documented below.
-- 🚧 **The application code** — being published progressively.
+- 🚧 **Remaining work to a running deployment:**
+  - **Multi-tenant configuration.** The authority hierarchy and jurisdiction scoping are currently hardcoded to the **national-assembly preset** (in `lib/moderator.ts`). Making them per-organization (national assembly / district conference) is the next step — see the project spec.
+  - **Corpus seeding.** The schema is here; the corpus *content* (Robert's Rules, governing documents) is generated separately and seeded under `CORPUS_USER_ID` — see [`supabase/README.md`](./supabase/README.md).
+  - **Wiring.** Copy `.env.example` to `.env.local`, point it at your own Supabase project + API keys, run the migrations, and seed the corpus.
 
 It was first used live at the **General Assembly of The Christian & Missionary Alliance in Canada, 2026** — 15 agenda items and 37 floor motions across the business sessions.
+
+> Note: the source was extracted from a private application. Deployment-specific values (chair email, corpus owner id, mail sender, app URL) were moved to environment variables — see [`.env.example`](./.env.example). No secrets or personal data are committed.
 
 ## What it does
 
