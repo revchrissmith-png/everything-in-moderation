@@ -28,7 +28,7 @@ type Mode = 'prep' | 'live'
 function ResolutionText({ html, className = '' }: { html: string; className?: string }) {
   return (
     <span
-      className={`[&_s]:text-red-700 [&_s]:decoration-red-700 [&_u]:text-emerald-700 [&_u]:decoration-emerald-700 [&_u]:decoration-2 ${className}`}
+      className={`[&_s]:text-red-700 [&_s]:bg-red-50 [&_s]:rounded-sm [&_s]:px-0.5 [&_s]:decoration-red-600 [&_u]:text-emerald-800 [&_u]:bg-emerald-50 [&_u]:rounded-sm [&_u]:px-0.5 [&_u]:decoration-emerald-600 [&_u]:decoration-2 ${className}`}
       dangerouslySetInnerHTML={{ __html: sanitizeRich(html) }}
     />
   )
@@ -71,11 +71,11 @@ const YN = (b: boolean | null) => (b === true ? 'Yes' : b === false ? 'No' : '�
 const SYNOD_FLAG_PREFIX = 'Synod-suggested threshold'
 
 const STATUS_STYLE: Record<string, string> = {
-  pending: 'bg-slate-200 text-slate-700', active: 'bg-amber-100 text-amber-900 ring-1 ring-amber-400',
-  tabled: 'bg-blue-100 text-blue-800', disposed: 'bg-slate-100 text-slate-500 line-through',
-  seconded: 'bg-indigo-100 text-indigo-800', adopted: 'bg-green-100 text-green-800',
-  rejected: 'bg-red-100 text-red-800', withdrawn: 'bg-slate-200 text-slate-600',
-  ruled_out_of_order: 'bg-red-100 text-red-800', }
+  pending: 'bg-slate-100 text-slate-600', active: 'bg-[#E6F1FB] text-[#00426A] ring-1 ring-[#0077C8]/40',
+  tabled: 'bg-[#fbf1d9] text-[#8a6100]', disposed: 'bg-slate-100 text-slate-400 line-through',
+  seconded: 'bg-[#E6F1FB] text-[#0077C8]', adopted: 'bg-[#e6f4ec] text-[#1d7a4d]',
+  rejected: 'bg-[#fbeaea] text-[#b3261e]', withdrawn: 'bg-slate-100 text-slate-500',
+  ruled_out_of_order: 'bg-[#fbeaea] text-[#b3261e]', }
 
 // ── Shared edit-mode + polling context ──────────────────────────────────────
 interface ModCtx { mode: Mode; editing: boolean; holdPoll: () => void; releasePoll: () => void }
@@ -216,7 +216,7 @@ function QueryBar() {
     catch (e) { setErr((e as Error).message) } finally { setBusy(false) }
   }
   return (
-    <div className="rounded-xl border-2 border-slate-300 shadow-sm overflow-hidden">
+    <div className="rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       <div className="flex items-stretch">
         <input value={q} onChange={e => setQ(e.target.value)} onKeyDown={e => e.key === 'Enter' && ask()}
           placeholder="Is this in order? What vote does it need?"
@@ -228,12 +228,12 @@ function QueryBar() {
       </div>
       {err && <div className="px-4 py-2 text-sm text-red-600 bg-red-50">{err}</div>}
       {ans && (
-        <div className="px-4 py-3 border-t-2 border-slate-200 bg-slate-50">
+        <div className="px-4 py-3 border-t border-slate-200 bg-slate-50">
           <p className="text-[15px] text-slate-900 leading-relaxed whitespace-pre-wrap">{ans.answer}</p>
           {ans.sources.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1.5">
               {ans.sources.map(s => (
-                <span key={s.slug} className="text-[11px] px-1.5 py-0.5 rounded bg-white border border-slate-300 text-slate-600">
+                <span key={s.slug} className="text-[11px] px-1.5 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600">
                   {s.kind}: {s.title}
                 </span>
               ))}
@@ -253,7 +253,7 @@ function CurrentItem({ current, agenda, refresh }: { current: AgendaItem | null;
   const upNext = agenda.find(i => i.status === 'pending')
   const canGoBack = agenda.some(i => i.status === 'disposed')
   return (
-    <div className="rounded-xl border-2 border-amber-300 bg-amber-50 p-4">
+    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-bold uppercase tracking-wide text-amber-700">Now before the assembly</span>
         {mode === 'live' && (
@@ -342,7 +342,7 @@ function MotionConsole({ floor, catalog, current, refresh }: {
     !m.amends && ['pending', 'seconded'].includes(m.status) && (!inReport || m.agenda_item_id !== current!.id))
 
   return (
-    <div className="rounded-xl border-2 border-slate-300 bg-white p-4">
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <h3 className="text-sm font-bold text-slate-800 mb-2">
         {inReport ? `Resolutions — ${current!.title}` : 'Motion console'}
       </h3>
@@ -351,13 +351,13 @@ function MotionConsole({ floor, catalog, current, refresh }: {
         <>
           <textarea value={text} onChange={e => setText(e.target.value)} rows={2}
             placeholder={inReport ? 'Add / record a resolution under this report…' : 'Motion from the floor…'}
-            className="w-full px-3 py-2 text-[15px] bg-white text-slate-900 border-2 border-slate-400 rounded-lg outline-none focus:border-[#00426A] placeholder-slate-500" />
+            className="w-full px-3 py-2 text-[15px] bg-white text-slate-900 border border-slate-300 rounded-lg outline-none focus:border-[#00426A] placeholder-slate-500" />
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <input value={code} onChange={e => setCode(e.target.value)}
               placeholder={inReport ? 'Code…' : nextFL}
-              className="w-24 px-2 py-2 text-sm border-2 border-slate-400 rounded-lg bg-white text-slate-900 placeholder-slate-400 font-semibold" />
+              className="w-24 px-2 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-900 placeholder-slate-400 font-semibold" />
             <select value={pickedCitation} onChange={e => setPicked(e.target.value)}
-              className="flex-1 min-w-[180px] px-2 py-2 text-sm border-2 border-slate-400 rounded-lg bg-white text-slate-900">
+              className="flex-1 min-w-[180px] px-2 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-900">
               <option value="">Classify (optional)…</option>
               {['main', 'subsidiary', 'privileged', 'incidental', 'bring_back'].map(cls => (
                 <optgroup key={cls} label={cls.replace('_', ' ')}>
@@ -447,22 +447,22 @@ function MotionCard({ m, index, patch, kids, addAmendment }: {
   }
 
   return (
-    <div className="border border-slate-300 bg-white rounded-lg p-3">
+    <div className="border border-slate-200 bg-white rounded-xl p-3">
       <div className="flex items-start justify-between gap-2">
         <p className="text-[15px] text-slate-900 flex-1">
-          {m.code && <span className="inline-block mr-1.5 px-1.5 py-0.5 rounded bg-[#00426A] text-white text-xs font-bold align-text-bottom">{m.code}</span>}
+          {m.code && <span className="inline-block mr-1.5 px-1.5 py-0.5 rounded-md bg-[#E6F1FB] text-[#00426A] text-xs font-bold font-mono align-text-bottom">{m.code}</span>}
           {index != null && !m.code && <span className="text-slate-600 font-semibold mr-1">{index}.</span>}<ResolutionText html={m.text} />
         </p>
         <span className={`shrink-0 text-[11px] px-2 py-0.5 rounded-full ${STATUS_STYLE[m.status]}`}>{m.status === 'rejected' ? 'defeated' : m.status}</span>
       </div>
       <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-slate-600">
-        {m.ronr_citation && <span className="px-1.5 py-0.5 rounded bg-slate-100">RONR {m.ronr_citation}</span>}
+        {m.ronr_citation && <span className="px-1.5 py-0.5 rounded-md bg-slate-100">RONR {m.ronr_citation}</span>}
         {m.vote_required && (
           <span className={`px-1.5 py-0.5 rounded ${suggested ? 'bg-amber-100 text-amber-900' : 'bg-slate-100'}`}>
             vote: {prettyVote(m.vote_required)}{suggested ? ' · Synod (unconfirmed)' : ''}
           </span>
         )}
-        {m.requires_second === false && <span className="px-1.5 py-0.5 rounded bg-slate-100">no second</span>}
+        {m.requires_second === false && <span className="px-1.5 py-0.5 rounded-md bg-slate-100">no second</span>}
         {m.flags?.filter(f => !f.startsWith(SYNOD_FLAG_PREFIX)).map(f =>
           <span key={f} className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">⚠ {f}</span>)}
       </div>
@@ -472,7 +472,7 @@ function MotionCard({ m, index, patch, kids, addAmendment }: {
           <span className="text-[11px] font-semibold text-slate-700">Threshold:</span>
           <button onClick={() => clearSuggestion()} className="px-2.5 py-1 text-xs rounded-md bg-emerald-600 text-white font-semibold">Confirm {prettyVote(m.vote_required)}</button>
           <select defaultValue="" onChange={e => { if (e.target.value) clearSuggestion({ vote_required: e.target.value }) }}
-            className="px-2 py-1 text-xs border-2 border-slate-400 rounded-md bg-white text-slate-900">
+            className="px-2 py-1 text-xs border border-slate-300 rounded-md bg-white text-slate-900">
             <option value="">Override…</option>
             <option value="majority">majority</option>
             <option value="2/3">2/3</option>
@@ -490,7 +490,7 @@ function MotionCard({ m, index, patch, kids, addAmendment }: {
           <DispBtn label="Withdrawn" body={{ status: 'withdrawn' }} color="bg-gray-400" />
           {canAmend && !amending && (
             <button onClick={openAmend} disabled={!!acting}
-              className="px-2.5 py-1 text-xs rounded-md border-2 border-[#00426A] text-[#00426A] font-semibold disabled:opacity-50">
+              className="px-2.5 py-1 text-xs rounded-md border border-[#00426A] text-[#00426A] font-semibold disabled:opacity-50">
               Amend…
             </button>
           )}
@@ -502,7 +502,7 @@ function MotionCard({ m, index, patch, kids, addAmendment }: {
           <div className="flex items-center gap-2 mb-1">
             <span className="text-[11px] font-bold uppercase tracking-wide text-slate-600">Amendment</span>
             <input value={amendCode} onChange={e => setAmendCode(e.target.value)} placeholder="Code…"
-              className="w-24 px-2 py-1 text-xs border-2 border-slate-400 rounded-md bg-white text-slate-900 font-semibold" />
+              className="w-24 px-2 py-1 text-xs border border-slate-300 rounded-md bg-white text-slate-900 font-semibold" />
           </div>
           <RichEditor initialHTML={m.text} saving={amendBusy} onSave={submitAmend} onCancel={() => setAmending(false)} />
         </div>
@@ -525,17 +525,17 @@ function RulesLookup({ catalog }: { catalog: Motion[] }) {
     return s ? catalog.filter(m => m.name.toLowerCase().includes(s) || m.citation.includes(s)) : catalog
   }, [q, catalog])
   return (
-    <div className="rounded-xl border-2 border-slate-300 bg-white p-4">
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <button onClick={() => setOpen(o => !o)} className="w-full flex items-center justify-between text-sm font-bold text-slate-800">
         <span>Motion rules quick-lookup</span><span className="text-slate-500">{open ? '▾' : '▸'}</span>
       </button>
       {open && (
         <>
           <input value={q} onChange={e => setQ(e.target.value)} placeholder="Filter motions…"
-            className="mt-2 w-full px-3 py-2 text-sm bg-white text-slate-900 border-2 border-slate-400 rounded-lg outline-none focus:border-[#00426A] placeholder-slate-500" />
+            className="mt-2 w-full px-3 py-2 text-sm bg-white text-slate-900 border border-slate-300 rounded-lg outline-none focus:border-[#00426A] placeholder-slate-500" />
           <div className="mt-2 overflow-x-auto">
             <table className="w-full text-[13px]">
-              <thead><tr className="text-left text-slate-600 border-b-2 border-slate-300">
+              <thead><tr className="text-left text-slate-600 border-b border-slate-200">
                 <th className="py-1 pr-2">Motion</th><th className="px-1">Deb</th><th className="px-1">Amd</th><th className="px-1">2nd</th><th className="px-1">Vote</th><th className="px-1">Recon</th>
               </tr></thead>
               <tbody>
@@ -594,7 +594,7 @@ function RichEditor({ initialHTML, saving, onSave, onCancel }: {
       <div ref={ref} contentEditable suppressContentEditableWarning role="textbox" aria-multiline="true"
         onFocus={holdPoll} onBlur={releasePoll}
         dangerouslySetInnerHTML={{ __html: sanitizeRich(initialHTML) }}
-        className="min-h-[3.5rem] w-full px-2 py-1.5 bg-white text-slate-900 border-2 border-slate-400 rounded-md outline-none focus:border-[#00426A] whitespace-pre-wrap [&_s]:text-red-700 [&_s]:decoration-red-700 [&_u]:text-emerald-700 [&_u]:decoration-emerald-700 [&_u]:decoration-2" />
+        className="min-h-[3.5rem] w-full px-2 py-1.5 bg-white text-slate-900 border border-slate-300 rounded-md outline-none focus:border-[#00426A] whitespace-pre-wrap [&_s]:text-red-700 [&_s]:bg-red-50 [&_s]:rounded-sm [&_s]:px-0.5 [&_s]:decoration-red-600 [&_u]:text-emerald-800 [&_u]:bg-emerald-50 [&_u]:rounded-sm [&_u]:px-0.5 [&_u]:decoration-emerald-600 [&_u]:decoration-2" />
       <div className="mt-1 flex gap-2">
         <button onClick={() => onSave(ref.current?.innerHTML ?? '')} disabled={saving} className="px-3 py-1 text-xs rounded-md bg-[#00426A] text-white font-semibold disabled:opacity-50">Save</button>
         <button onClick={onCancel} className="px-3 py-1 text-xs rounded-md bg-slate-200 text-slate-800 hover:bg-slate-300 font-semibold">Cancel</button>
@@ -634,7 +634,7 @@ function ResolutionRow({ r, idx, editResolution, recheckThreshold, delMotion }: 
       <div>
         <input value={code} onChange={e => setCode(e.target.value)} placeholder="Code (e.g. GL2)…"
           onFocus={holdPoll} onBlur={releasePoll}
-          className="mb-1 w-32 px-2 py-1 text-xs border-2 border-slate-400 rounded-md bg-white text-slate-900 font-semibold" />
+          className="mb-1 w-32 px-2 py-1 text-xs border border-slate-300 rounded-md bg-white text-slate-900 font-semibold" />
         <RichEditor initialHTML={r.text} saving={saving} onSave={save} onCancel={() => { setCode(r.code ?? ''); setOpen(false) }} />
       </div>
     )
@@ -644,7 +644,7 @@ function ResolutionRow({ r, idx, editResolution, recheckThreshold, delMotion }: 
       <div className="flex items-start gap-2 text-[13px]">
         <span className="text-slate-600 font-semibold w-4 pt-0.5">{idx + 1}.</span>
         <span className="flex-1 text-slate-900">
-          {r.code && <span className="inline-block mr-1 px-1 py-px rounded bg-[#00426A] text-white text-[11px] font-bold">{r.code}</span>}
+          {r.code && <span className="inline-block mr-1 px-1.5 py-px rounded-md bg-[#E6F1FB] text-[#00426A] text-[11px] font-bold font-mono">{r.code}</span>}
           <ResolutionText html={r.text} />
           {r.vote_required && <span className="ml-1 text-[11px] text-slate-500">({prettyVote(r.vote_required)})</span>}
         </span>
@@ -701,7 +701,7 @@ function AgendaItemRow({ item, idx, motions, patch, del, addResolution, editReso
   }
 
   return (
-    <li className="border border-slate-300 bg-slate-50 rounded-lg px-3 py-2">
+    <li className="border border-slate-200 bg-white rounded-xl px-3 py-2 hover:border-slate-300 transition-colors">
       <div className="flex items-center gap-2">
         <button onClick={toggleCollapse} aria-label={collapsed ? 'Expand item' : 'Collapse item'}
           className="text-slate-500 hover:text-slate-900 w-5 text-sm leading-none">{collapsed ? '▸' : '▾'}</button>
@@ -727,7 +727,7 @@ function AgendaItemRow({ item, idx, motions, patch, del, addResolution, editReso
           <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={4} autoFocus
             onFocus={holdPoll} onBlur={releasePoll}
             placeholder="Motion wording / details — surfaces under this item in the live console…"
-            className="w-full px-3 py-2 text-sm bg-white text-slate-900 border-2 border-slate-400 rounded-lg outline-none focus:border-[#00426A] placeholder-slate-500" />
+            className="w-full px-3 py-2 text-sm bg-white text-slate-900 border border-slate-300 rounded-lg outline-none focus:border-[#00426A] placeholder-slate-500" />
           <div className="mt-1 flex gap-2">
             <button onClick={save} disabled={saving} className="px-3 py-1 text-xs rounded-md bg-[#00426A] text-white font-semibold disabled:opacity-50">Save</button>
             <button onClick={() => { setDesc(item.description ?? ''); setOpen(false) }} className="px-3 py-1 text-xs rounded-md bg-slate-200 text-slate-800 hover:bg-slate-300 font-semibold">Cancel</button>
@@ -756,11 +756,11 @@ function AgendaItemRow({ item, idx, motions, patch, del, addResolution, editReso
               <input value={resCode} onChange={e => setResCode(e.target.value)} onKeyDown={e => e.key === 'Enter' && addRes()}
                 onFocus={holdPoll} onBlur={releasePoll}
                 placeholder="GL2…"
-                className="w-20 px-2 py-1.5 text-[13px] bg-white text-slate-900 border-2 border-slate-400 rounded-md outline-none focus:border-[#00426A] placeholder-slate-400 font-semibold" />
+                className="w-20 px-2 py-1.5 text-[13px] bg-white text-slate-900 border border-slate-300 rounded-md outline-none focus:border-[#00426A] placeholder-slate-400 font-semibold" />
               <input value={resText} onChange={e => setResText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addRes()}
                 onFocus={holdPoll} onBlur={releasePoll}
                 placeholder="Add resolution wording…"
-                className="flex-1 px-2 py-1.5 text-[13px] bg-white text-slate-900 border-2 border-slate-400 rounded-md outline-none focus:border-[#00426A] placeholder-slate-500" />
+                className="flex-1 px-2 py-1.5 text-[13px] bg-white text-slate-900 border border-slate-300 rounded-md outline-none focus:border-[#00426A] placeholder-slate-500" />
               <button onClick={addRes} disabled={addingRes} className="px-3 py-1.5 text-xs rounded-md bg-[#00426A] text-white font-semibold disabled:opacity-50">Add</button>
             </div>
           )}
@@ -823,7 +823,7 @@ function PrepMode({ agenda, floor, catalog, team, isOwner, setAgenda, setFloor, 
 
   return (
     <div className="space-y-4 pt-3">
-      <div className="rounded-xl border-2 border-slate-300 bg-white p-4">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-bold text-slate-800">Build the agenda</h3>
           {agenda.length > 0 && (
@@ -843,8 +843,8 @@ function PrepMode({ agenda, floor, catalog, team, isOwner, setAgenda, setFloor, 
           <>
             <div className="flex flex-wrap gap-2">
               <input value={title} onChange={e => setTitle(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()}
-                placeholder="Agenda item…" className="flex-1 min-w-[180px] px-3 py-2 text-[15px] bg-white text-slate-900 border-2 border-slate-400 rounded-lg outline-none focus:border-[#00426A] placeholder-slate-500" />
-              <select value={type} onChange={e => setType(e.target.value)} className="px-2 py-2 text-sm bg-white text-slate-900 border-2 border-slate-400 rounded-lg">
+                placeholder="Agenda item…" className="flex-1 min-w-[180px] px-3 py-2 text-[15px] bg-white text-slate-900 border border-slate-300 rounded-lg outline-none focus:border-[#00426A] placeholder-slate-500" />
+              <select value={type} onChange={e => setType(e.target.value)} className="px-2 py-2 text-sm bg-white text-slate-900 border border-slate-300 rounded-lg">
                 {['business', 'report', 'special_order', 'election', 'recess', 'ceremonial', 'other'].map(t => <option key={t} value={t}>{t.replace('_', ' ')}</option>)}
               </select>
               <button onClick={add} disabled={busy} className="px-4 py-2 rounded-lg bg-[#00426A] text-white text-sm font-semibold disabled:opacity-50">Add</button>
@@ -852,7 +852,7 @@ function PrepMode({ agenda, floor, catalog, team, isOwner, setAgenda, setFloor, 
             <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2}
               onFocus={holdPoll} onBlur={releasePoll}
               placeholder="Motion wording / details (optional) — surfaces under this item in the live console…"
-              className="mt-2 w-full px-3 py-2 text-sm bg-white text-slate-900 border-2 border-slate-400 rounded-lg outline-none focus:border-[#00426A] placeholder-slate-500" />
+              className="mt-2 w-full px-3 py-2 text-sm bg-white text-slate-900 border border-slate-300 rounded-lg outline-none focus:border-[#00426A] placeholder-slate-500" />
             <p className="mt-1 text-[11px] text-slate-600">Tip: set type to <b>report</b> to nest a series of resolutions beneath it.</p>
           </>
         )}
@@ -877,12 +877,12 @@ function PrepMode({ agenda, floor, catalog, team, isOwner, setAgenda, setFloor, 
 
       {isOwner && <RosterManager team={team} refreshTeam={refreshTeam} />}
 
-      <div className="rounded-xl border-2 border-slate-300 bg-white p-4">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <h3 className="text-sm font-bold text-slate-800 mb-1">Motion rules — full reference ({catalog.length})</h3>
         <p className="text-xs text-slate-600 mb-2">Robert&apos;s Rules 12th ed. Standard Descriptive Characteristics. ⚠ = threshold has exceptions; verify on the floor.</p>
         <div className="overflow-x-auto">
           <table className="w-full text-[13px]">
-            <thead><tr className="text-left text-slate-600 border-b-2 border-slate-300">
+            <thead><tr className="text-left text-slate-600 border-b border-slate-200">
               <th className="py-1 pr-2">Motion</th><th className="px-1">Class</th><th className="px-1">Int</th><th className="px-1">2nd</th><th className="px-1">Deb</th><th className="px-1">Amd</th><th className="px-1">Vote</th><th className="px-1">Recon</th>
             </tr></thead>
             <tbody>
@@ -929,17 +929,17 @@ function RosterManager({ team, refreshTeam }: { team: TeamMember[]; refreshTeam:
   const remove = async (e: string) => { await fetch(`/api/moderator/team?email=${encodeURIComponent(e)}`, { method: 'DELETE' }); await refreshTeam() }
 
   return (
-    <div className="rounded-xl border-2 border-slate-300 bg-white p-4">
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <h3 className="text-sm font-bold text-slate-800 mb-1">Moderation support team</h3>
       <p className="text-xs text-slate-600 mb-2">External users scoped to this panel only. They sign in by email code and can edit agenda &amp; motions — they have no other access.</p>
       {editing && (
         <div className="flex flex-wrap gap-2">
           <input value={email} onChange={e => setEmail(e.target.value)} onFocus={holdPoll} onBlur={releasePoll}
             placeholder="email@example.com" type="email"
-            className="flex-1 min-w-[180px] px-3 py-2 text-sm bg-white text-slate-900 border-2 border-slate-400 rounded-lg outline-none focus:border-[#00426A] placeholder-slate-500" />
+            className="flex-1 min-w-[180px] px-3 py-2 text-sm bg-white text-slate-900 border border-slate-300 rounded-lg outline-none focus:border-[#00426A] placeholder-slate-500" />
           <input value={name} onChange={e => setName(e.target.value)} onFocus={holdPoll} onBlur={releasePoll}
             placeholder="Name (optional)"
-            className="min-w-[120px] px-3 py-2 text-sm bg-white text-slate-900 border-2 border-slate-400 rounded-lg outline-none focus:border-[#00426A] placeholder-slate-500" />
+            className="min-w-[120px] px-3 py-2 text-sm bg-white text-slate-900 border border-slate-300 rounded-lg outline-none focus:border-[#00426A] placeholder-slate-500" />
           <button onClick={add} disabled={busy} className="px-4 py-2 rounded-lg bg-[#00426A] text-white text-sm font-semibold disabled:opacity-50">Invite</button>
         </div>
       )}
@@ -948,7 +948,7 @@ function RosterManager({ team, refreshTeam }: { team: TeamMember[]; refreshTeam:
       <ul className="mt-3 space-y-1.5">
         {team.length === 0 && <p className="text-sm text-slate-600">No support members yet.</p>}
         {team.map(m => (
-          <li key={m.email} className="flex items-center gap-2 border border-slate-300 bg-slate-50 rounded-lg px-3 py-2">
+          <li key={m.email} className="flex items-center gap-2 border border-slate-200 bg-white rounded-xl px-3 py-2 hover:border-slate-300 transition-colors">
             <span className="flex-1 text-[14px] text-slate-900">{m.name ? <b>{m.name}</b> : null} <span className="text-slate-600">{m.email}</span></span>
             {editing && <button onClick={() => remove(m.email)} className="text-xs px-2 py-1 rounded bg-slate-200 text-slate-800 hover:bg-red-600 hover:text-white font-semibold">Remove</button>}
           </li>
