@@ -96,6 +96,23 @@ Once your deployment is running, customizing it for your context is data and doc
 
 Your constitution / bylaws / standing rules, confirmation of your incorporating jurisdiction, your logo and brand colours, an app title, the chair's and support team's email addresses, and any vote thresholds your bylaws set beyond the usual.
 
+## Roadmap
+
+Planned for district-conference use, in two phases. Nothing here is built yet.
+
+**Phase 1 — on the web app:**
+- **Document import** — upload a conference packet (Word/PDF) and have the agenda, reports, and nested resolutions extracted for review before they're committed.
+- **Secretary's console + minutes** — a live minutes draft assembled automatically from the chair's actions, which the secretary follows and corrects in real time (movers, seconders, discussion, points of order); the official minutes export flows from that curated draft.
+- **Delegate live view** — an anonymous, read-only view delegates open by link/QR: the current business with live amendment mark-up and the vote it requires, plus where the assembly is in the agenda.
+
+**Phase 2 — offline-resilient desktop app:**
+- **Local-first session mode** — a desktop build (Tauri) that holds the live session on the chair's machine and syncs to the cloud when the network is up, so the floor mechanics keep working through a network outage.
+- **Projection screen** — a dedicated second-display window for the room's main screen showing the active business with accurate amendments and requirements.
+
+> The AI features (the Parliamentarian and threshold suggestions) rely on connectivity; local-first protects the floor mechanics — agenda, motions, amendments, requirements, minutes, and projection — not the AI lookups.
+
+**Later:** per-delegate electronic voting at assembly scale (individual delegate identity, real-time capture, integrity and quorum checks) — a larger undertaking, deferred for now.
+
 ## License
 
 [MIT](./LICENSE) — free to use, adapt, and self-host.
